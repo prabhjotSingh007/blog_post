@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+
+model User{
+  id Int @id @default(autoincrement())
+  name String
+  email String @unique
+  password String
+  loginSessions Login_Session[]
+  post Post[]
+  status STATUS @default(Active)
+
+  @@map("users")
+}
+
+model Login_Session {
+  id Int @id @default(autoincrement())
+  user User @relation(fields : [userId] , references : [id])
+  userId Int
+  login_at  DateTime   @default(now()) 
+  logout_at  DateTime?
+
+  @@index([userId])
+  @@map("login_sessions")
+}
+
+model Category{
+  id Int @id @default(autoincrement())
+  name String @unique
+  created_at DateTime @default(now())
+  deleted_at DateTime?
+  status STATUS @default(Active)
+  posts Post[]
+
+  @@map("categories")
+
+}
+
+model Post {
+  id Int @id @default(autoincrement())
+  createdByID Int
+  user User @relation(fields : [createdByID], references :[id]) 
+  categoryId Int
+  category Category  @relation(fields : [categoryId], references :[id]) 
+  name String
+  description String
+  status STATUS @default(Active)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  @@index([categoryId,createdByID ])
+    @@map("posts")
+}
+
+
+enum STATUS {
+  Active
+  Inactive
+}
