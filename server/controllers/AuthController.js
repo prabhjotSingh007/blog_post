@@ -1,7 +1,7 @@
 const { LoginSchema, RegisterSchema } = require("../validators/authValidator")
 const { PrismaClient } = require('../generated/prisma/client');
 const { comparePassword, createPassword } = require("../utlits/passwordGen");
-const { generateToken } = require("../utlits/jwtToken");
+const { generateToken, returnUserFromToken } = require("../utlits/jwtToken");
 const prisma = new PrismaClient();
 
 const login = async (req, res) => {
@@ -105,7 +105,6 @@ const register = (req, res) => {
             user: user
         })
 
-
     } catch (err) {
         return res.status(500).send({
             success: false,
@@ -116,4 +115,46 @@ const register = (req, res) => {
 
 }
 
-module.exports = { login, register }
+const logout = (req, res) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        if (!authHeader) {
+            return res.status(401).send({
+                success: false,
+                message: "Unauthorized"
+            })
+        }
+        const user = returnUserFromToken(authHeader);
+        if (!user) {
+            return res.status(404).send({
+                success: false,
+                message: "User not found"
+            })
+        }
+
+
+        const loginSession = await prisma.login_Session.update({
+            where: {
+                userId: user.id
+            },
+            data: {
+                logout_at: (new Date()).toISOString()
+            }
+        })
+
+        return res.status(200).send({
+            success: false,
+            message: "LogOut successfully"
+        })
+
+
+    } catch (err) {
+        return res.status(500).send({
+            success: false,
+            message: err instanceof Error ? err : "Error in Login"
+        })
+
+    }
+}
+
+module.exports = { login, register, logout }

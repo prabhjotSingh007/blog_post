@@ -2,14 +2,10 @@ const bcrypt = require('bcrypt');
 const saltRounds = process.env.BCRYPT_SALT
 
 const createPassword = async (password) => {
-    let password = null
-    await bcrypt.hash(password, saltRounds, function (err, hash) {
-        // Store hash in your password DB.
-        password = hash
-    });
-
-    return password
-}
+    const hash = await bcrypt.hash(password, saltRounds);
+    console.log(hash , "hashhash")
+    return hash;
+};
 
 
 const comparePassword = async (password, passwordFromDb) => {
