@@ -20,3 +20,5 @@ const comparePassword = async (password, passwordFromDb) => {
 
     return isMatch
 }
+
+module.exports = { createPassword, comparePassword }

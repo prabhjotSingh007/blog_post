@@ -1,33 +1,119 @@
-const { LoginSchema } = require("../validators/authValidator")
+const { LoginSchema, RegisterSchema } = require("../validators/authValidator")
 const { PrismaClient } = require('../generated/prisma/client');
+const { comparePassword, createPassword } = require("../utlits/passwordGen");
+const { generateToken } = require("../utlits/jwtToken");
 const prisma = new PrismaClient();
 
 const login = async (req, res) => {
-    const { email, password } = req.body
 
-    const { value, error } = LoginSchema.validate()
+    try {
+        const { email, password } = req.body;
 
-    if (error) {
-        res.status(400).send({
-            success: false,
-            error: error
-        })
-    }
+        const { value, error } = LoginSchema.validate();
 
-    const user = await prisma.user.findUnique({
-        where: {
-            email: email
+        if (error) {
+            return res.status(400).send({
+                success: false,
+                error: error
+            })
         }
-    })
 
-    if (!user) {
-        res.status(404).send({
-            success: false,
-            message:'User not Found' 
+        const user = await prisma.user.findUnique({
+            where: {
+                email: email
+            }
         })
+
+        if (!user) {
+            return res.status(404).send({
+                success: false,
+                message: 'User not Found'
+            })
+        }
+        const isPasswordMatch = await comparePassword(user.password, password)
+
+        if (!isPasswordMatch) {
+            return res.status(400).send({
+                success: false,
+                message: 'Invalid Password'
+            })
+        }
+
+        const loginSession = await prisma.login_Session.create({
+            data: {
+                userId: user.id,
+            }
+        })
+
+        return res.status(200).send({
+            success: true,
+            user: user
+        })
+    } catch (err) {
+        return res.status(500).send({
+            success: false,
+            message: err instanceof Error ? err : "Error in Login"
+        })
+
     }
 
 
 }
 
-module.exports = { login }
+const register = (req, res) => {
+    try {
+        const { name, email, password, } = req.body;
+
+        if (!email || !name || !password) {
+            return res.status(400).send({
+                success: false,
+                message: `${email || name || password} is missing`
+            })
+        }
+
+        const { value, error } = RegisterSchema.validate();
+
+        if (error) {
+            return res.status(400).send({
+                success: false,
+                error: error
+            })
+        }
+
+        const hashPassword = await createPassword(password);
+
+        const createUser = await prisma.user.create({
+            data: {
+                name: name,
+                email: email,
+                password: hashPassword
+            }
+        })
+
+        const createToken = generateToken(createUser)
+
+        const loginSession = await prisma.login_Session.create({
+            data: {
+                userId: createUser.id,
+                token: createToken
+            }
+        })
+
+        return res.status(200).send({
+            success: true,
+            message: "Login Success",
+            user: user
+        })
+
+
+    } catch (err) {
+        return res.status(500).send({
+            success: false,
+            message: err instanceof Error ? err : "Error in Login"
+        })
+
+    }
+
+}
+
+module.exports = { login, register }
