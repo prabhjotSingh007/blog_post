@@ -11,7 +11,8 @@ const addAdmin = async () => {
         data: {
             name: 'Admin',
             email: "admin@yopmail.com",
-            password: hashPassword
+            password: hashPassword,
+            role:'ADMIN'
         }
     })
 

@@ -1,20 +1,18 @@
 const bcrypt = require('bcrypt');
-const saltRounds = process.env.BCRYPT_SALT
+const dotEnv = require('dotenv')
+dotEnv.config()
+const saltRounds = Number(process.env.BCRYPT_SALT)
 
 const createPassword = async (password) => {
-    const hash = await bcrypt.hash(password, saltRounds);
-    console.log(hash , "hashhash")
+    const salt =await bcrypt.genSaltSync((saltRounds));
+    const hash =await bcrypt.hashSync(password, saltRounds);
+    // const hash = await bcrypt.hash(password, saltRounds);
     return hash;
 };
 
 
 const comparePassword = async (password, passwordFromDb) => {
-    let isMatch = false
-    await bcrypt.compare(password, passwordFromDb, function (err, result) {
-        isMatch = result
-    });
-
-    return isMatch
+    return await bcrypt.compare(password, passwordFromDb);
 }
 
 module.exports = { createPassword, comparePassword }
