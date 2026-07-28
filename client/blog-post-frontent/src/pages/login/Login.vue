@@ -6,14 +6,16 @@ const formData = ref({
 })
 
 const showPassword = ref(false)
-const handleFormSubmit = ()=>{
+const handleFormSubmit = () => {
     console.log(formData.value)
 }
 
 </script>
 
 <template>
+
     <div class="loginForm">
+        <p>{{ showPassword }}</p>
         <div class="content">
             <form @submit.prevent="handleFormSubmit()">
                 <h2>Login</h2>
@@ -26,7 +28,7 @@ const handleFormSubmit = ()=>{
                         placeholder="Password" />
                     <i :class="showPassword ? 'fa-eye' : 'fa-eye-slash'"
                         class="toggle-password fa-solid text-black cursor pointer"
-                        @click="showPassword = !showPassword"></i>
+                        @click="showPassword = !showPassword ; console.log(showPassword)"></i>
                 </div>
 
                 <button type="submit" class="btnn">Login</button>
@@ -38,6 +40,32 @@ const handleFormSubmit = ()=>{
             </form>
         </div>
     </div>
+
+    <Vueform :display-errors="false">
+
+        <TextElement placeholder="Eamil" field-name="eamil" :rules="required | email" input-type="email" :add-class="{
+            inputContainer: 'input-box',
+            input: '',
+        }" />
+        <div>
+            <TextElement placeholder="Password" field-name="password" :rules="required | password"
+                :type="showPassword ? 'text' : 'password'" :add-class="{
+                    inputContainer: 'input-box',
+                    input: '',
+                }" />
+            <i :class="[
+                'fa-solid',
+                showPassword ? 'fa-eye' : 'fa-eye-slash',
+                'toggle-password',
+                'text-black',
+                'cursor',
+                'pointer'
+            ]" @click="
+                showPassword = !showPassword;
+            console.log(showPassword);
+            "></i>
+        </div>
+    </Vueform>
 </template>
 
 <style scoped>
