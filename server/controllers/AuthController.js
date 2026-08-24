@@ -60,7 +60,7 @@ const login = async (req, res) => {
 
 }
 
-const register = (req, res) => {
+const register = async (req, res) => {
     try {
         const { name, email, password, } = req.body;
 
@@ -115,7 +115,7 @@ const register = (req, res) => {
 
 }
 
-const logout = (req, res) => {
+const logout = async (req, res) => {
     try {
         const authHeader = req.headers['authorization'];
         if (!authHeader) {
