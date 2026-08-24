@@ -5,7 +5,8 @@ const formData = ref({
     password: ''
 })
 
-const showPassword = ref(false)
+const showPassword = ref(false);
+
 const handleFormSubmit = () => {
     console.log(formData.value)
 }
@@ -14,8 +15,7 @@ const handleFormSubmit = () => {
 
 <template>
 
-    <div class="loginForm">
-        <p>{{ showPassword }}</p>
+    <!-- <div class="loginForm">
         <div class="content">
             <form @submit.prevent="handleFormSubmit()">
                 <h2>Login</h2>
@@ -39,7 +39,7 @@ const handleFormSubmit = () => {
 
             </form>
         </div>
-    </div>
+    </div> -->
 
     <Vueform :display-errors="false">
 
@@ -56,14 +56,10 @@ const handleFormSubmit = () => {
             <i :class="[
                 'fa-solid',
                 showPassword ? 'fa-eye' : 'fa-eye-slash',
-                'toggle-password',
                 'text-black',
                 'cursor',
                 'pointer'
-            ]" @click="
-                showPassword = !showPassword;
-            console.log(showPassword);
-            "></i>
+            ]" @click.prevent="showPassword = !showPassword ; console.log(showPassword)"></i>
         </div>
     </Vueform>
 </template>
