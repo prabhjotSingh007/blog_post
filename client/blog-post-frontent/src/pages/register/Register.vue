@@ -1,22 +1,44 @@
 <script setup>
 import '../login/style.css'
 
-import { email, required } from '@vueform/vueform';
-import { ref, onMounted } from 'vue';
-const formData = ref({
-    email: '',
-    password: ''
-})
+import { email, required, Validator } from '@vueform/vueform';
+import { ref, onMounted, watch } from 'vue';
+import { showWarning, showSuccess } from '../../services/toster-service/toster'
+import { Register } from '../../services/api-service/auth/AuthService';
+import { hideLoader, showLoader } from '../../services/loader-service/loder-service';
+import { saveUserInCookes } from '../../services/cookies-service/CookiesService';
+import { useRouter } from 'vue-router'
 
 const showPassword = ref(false);
 const showConFirmPassword = ref(false)
 const form$ = ref(null)
 
+const router = useRouter()
 
-const handleFormSubmit = async (formData, form$) => {
+const handleFormSubmit = async (formData, form$, ...args) => {
     console.log(formData, "formData")
     console.log(form$, "form$")
-    return
+    const [name, password, email] = [form$.get("name"), form$.get("password"), form$.get("email")]
+    console.log(name, password)
+    if (!name || !password || !email) {
+        showWarning("Error in field")
+        return
+    }
+    try {
+        showLoader()
+        const response = await Register({ name: name, password: password, email: email });
+        console.log(response)
+        const user = response?.data;
+        saveUserInCookes(user)
+        showSuccess(response?.message ?? "User created successfully")
+        router.push('/')
+        hideLoader()
+    } catch (err) {
+        hideLoader()
+        showError(err?.message ?? "Error")
+        console.log(err)
+    }
+
 }
 
 
@@ -27,36 +49,14 @@ const toggleConfirmPassword = () => {
     showConFirmPassword.value = !showConFirmPassword.value
 }
 
-onMounted(() => {
-    console.log(showPassword.value)
-})
+
+
 </script>
 
 <template>
 
     <div class="loginForm">
         <div class="content">
-            <!-- <form @submit.prevent="handleFormSubmit()">
-                <h2>Login</h2>
-                <div class="input-box">
-                    <input type="email" v-model="formData.email" placeholder="Email" />
-                    <i class="ri-user-fill"></i>
-                </div>
-                <div class="input-box">
-                    <input :type="showPassword ? 'text' : 'password'" v-model="formData.password" id="password"
-                        placeholder="Password" />
-                    <i :class="showPassword ? 'fa-eye' : 'fa-eye-slash'"
-                        class="toggle-password fa-solid text-black cursor pointer"
-                        @click="showPassword = !showPassword; console.log(showPassword)"></i>
-                </div>
-
-                <button type="submit" class="btnn">Login</button>
-
-                <div class="remember text-center d-flex justify-content-center">
-                    <RouterLink to="/register" class="link-underline-primary link-offset-3">Register</RouterLink>
-                </div>
-
-            </form> -->
             <h2>Register</h2>
 
             <Vueform :display-errors="false" validate-on="" ref="form$" @submit="handleFormSubmit" :endpoint="false">
@@ -93,17 +93,7 @@ onMounted(() => {
                 <div class="password-wrapper ">
                     <TextElement placeholder="Password" name="confirmPassword" label="Confirm Password" :rules="[
                         'required',
-                        {
-                            required: (form$, Validator) => {
-                                const password = form$.el$('password')?.value
-                                const confirmPassword = form$.el$('confirmPassword')?.value
-
-                                if (password === confirmPassword) {
-                                    return true
-                                }
-                                return 'Please fill in this field'
-                            }
-                        }
+                        'same:password',
                     ]" :input-type="showConFirmPassword ? 'text' : 'password'" :add-class="{
                         inputContainer: 'input-box',
                         input: '',

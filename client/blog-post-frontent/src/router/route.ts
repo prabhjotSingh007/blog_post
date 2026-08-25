@@ -26,7 +26,7 @@ const router = createRouter({
       name: 'home',
       component: () => import('../pages/home/Home.vue'),
       meta: {
-        requireAuth: true
+        requireAuth: false
       }
     },
 
@@ -38,6 +38,10 @@ router.beforeEach((to, from) => {
   // console.log(to, from)
   const user = getUserFromCookies();
   if (!user && to.meta.requireAuth) return { name: "login" };
+  if (user && !to.meta.requireAuth) return { name: "home" };
+  if (!user && !to.meta.requireAuth) return { name: "home" };
+
+
   // if (!to.meta.requireAuth && user) {
   //   return { name: "dashboard" };
   // }

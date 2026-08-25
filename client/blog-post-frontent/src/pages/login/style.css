@@ -7,13 +7,14 @@
     background-image: url("https://i.postimg.cc/RFqSM2rc/bg.jpg");
     background-size: cover;
     background-position: center;
+    color: #fff;
 }
 
 .eye_btn {
     position: absolute;
     z-index: 1;
     right: 8px;
-top: 50px;
+    top: 50px;
 }
 
 .password-wrapper {

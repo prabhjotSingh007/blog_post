@@ -7,16 +7,16 @@ export const Login = async (user: User) => {
         let response = await axiosInterceptor.post('/api/vi/auth/login', user);
         return response
     } catch (err: any) {
-        throw new Error(err)
+        throw new Error(err?.message)
     }
 }
 
 
-export const Register = async (user: User) => {
+export const Register = async (data: any) => {
     try {
-        let response = await axiosInterceptor.post('/api/vi/auth/register', user);
+        let response = await axiosInterceptor.post('/api/vi/auth/register', data);
         return response
     } catch (err: any) {
-        throw new Error(err)
+        throw new Error(err?.message)
     }
 }

@@ -4,7 +4,12 @@ const path = require('path');
 const dotenv = require('dotenv')
 dotenv.config()
 const port = process.env.PORT
+const cors = require('cors');
 
+// Adds headers: Access-Control-Allow-Origin: *
+app.use(cors({
+    origin: "*",
+}));
 
 // middleware to get body of the response 
 app.use(express.json());

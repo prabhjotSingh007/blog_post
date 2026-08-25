@@ -1,5 +1,5 @@
 const { LoginSchema, RegisterSchema } = require("../validators/authValidator")
-const { PrismaClient } = require('../generated/prisma/client');
+const { PrismaClient } = require("@prisma/client");
 const { comparePassword, createPassword } = require("../utlits/passwordGen");
 const { generateToken, returnUserFromToken } = require("../utlits/jwtToken");
 const prisma = new PrismaClient();
@@ -30,7 +30,7 @@ const login = async (req, res) => {
                 message: 'User not Found'
             })
         }
-        const isPasswordMatch = await comparePassword(user.password, password)
+        const isPasswordMatch = await comparePassword(password, user.password)
 
         if (!isPasswordMatch) {
             return res.status(400).send({
@@ -38,16 +38,18 @@ const login = async (req, res) => {
                 message: 'Invalid Password'
             })
         }
-
+        const createToken = generateToken(user)
         const loginSession = await prisma.login_Session.create({
             data: {
                 userId: user.id,
+                token: createToken
             }
         })
 
         return res.status(200).send({
             success: true,
-            user: user
+            message: "Login Successfully",
+            data: { ...user, token: createToken }
         })
     } catch (err) {
         return res.status(500).send({
@@ -64,6 +66,7 @@ const register = async (req, res) => {
     try {
         const { name, email, password, } = req.body;
 
+
         if (!email || !name || !password) {
             return res.status(400).send({
                 success: false,
@@ -74,6 +77,20 @@ const register = async (req, res) => {
         const { value, error } = RegisterSchema.validate();
 
         if (error) {
+            return res.status(400).send({
+                success: false,
+                error: error
+            })
+        }
+        console.log(name, email, password)
+
+        const isUserExist = await prisma.user.findUnique({
+            where: {
+                email: email
+            }
+        })
+
+        if (isUserExist) {
             return res.status(400).send({
                 success: false,
                 error: error
@@ -101,8 +118,8 @@ const register = async (req, res) => {
 
         return res.status(200).send({
             success: true,
-            message: "Login Success",
-            user: user
+            message: "User create Success",
+            data: { ...createUser, token: createToken }
         })
 
     } catch (err) {
