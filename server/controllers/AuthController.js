@@ -9,7 +9,7 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const { value, error } = LoginSchema.validate();
+        const { value, error } = LoginSchema.validate(req.body);
 
         if (error) {
             return res.status(400).send({
@@ -74,7 +74,7 @@ const register = async (req, res) => {
             })
         }
 
-        const { value, error } = RegisterSchema.validate();
+        const { value, error } = RegisterSchema.validate(req.body);
 
         if (error) {
             return res.status(400).send({
@@ -134,14 +134,9 @@ const register = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        const authHeader = req.headers['authorization'];
-        if (!authHeader) {
-            return res.status(401).send({
-                success: false,
-                message: "Unauthorized"
-            })
-        }
-        const user = returnUserFromToken(authHeader);
+        console.log("lkasdjhlkjasd")
+        const user = req.user;
+        console.log(user)
         if (!user) {
             return res.status(404).send({
                 success: false,

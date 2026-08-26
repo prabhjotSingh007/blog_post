@@ -3,3 +3,15 @@ export interface User {
     email: string,
     password: string
 }
+
+
+export interface Pagination {
+    limit: number,
+    currentPage: number
+}
+
+export enum UserRole {
+    Admin = "ADMIN",
+    USER = "USER",
+    Viewer = "VIEWER"
+}

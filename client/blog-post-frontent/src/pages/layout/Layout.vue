@@ -16,7 +16,7 @@ const { isLoading } = useLoader()
     <Loader v-if="isLoading" />
 
     <NavBar />
-    <div class="main_content">
+    <div class="main_content container">
         <RouterView />
     </div>
     <Footer />
@@ -27,5 +27,6 @@ const { isLoading } = useLoader()
 <style scoped>
 .main_content {
     min-height: 800px;
+    padding-top: 150px;
 }
 </style>

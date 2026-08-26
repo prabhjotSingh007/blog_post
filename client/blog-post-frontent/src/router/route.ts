@@ -29,6 +29,39 @@ const router = createRouter({
         requireAuth: false
       }
     },
+    {
+      path: '/latest-blog',
+      name: 'latest-blog',
+      component: () => import('../pages/latest-blog/LastestBlog.vue'),
+      meta: {
+        requireAuth: false
+      }
+    },
+    {
+      path: '/my-blog',
+      name: 'my-blog',
+      component: () => import('../pages/my-blog/MyBlog.vue'),
+      meta: {
+        requireAuth: true
+      }
+    },
+    {
+      path: '/add-blog',
+      name: 'add-blog',
+      component: () => import('../pages/add-blog/AddBlog.vue'),
+      meta: {
+        requireAuth: true
+      }
+    },
+    {
+      path: '/add-category',
+      name: 'add-category',
+      component: () => import('../pages/add-category/AddCategory.vue'),
+      meta: {
+        requireAuth: true,
+        roleAllowed: ["ADMIN"]
+      }
+    },
 
     { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
   ]
@@ -38,8 +71,18 @@ router.beforeEach((to, from) => {
   // console.log(to, from)
   const user = getUserFromCookies();
   if (!user && to.meta.requireAuth) return { name: "login" };
-  if (user && !to.meta.requireAuth) return { name: "home" };
-  if (!user && !to.meta.requireAuth) return { name: "home" };
+
+  // Role check
+  if (
+    user &&
+    to.meta.roleAllowed &&
+    !(to.meta.roleAllowed as string[]).includes(user.role)
+  ) {
+    return { name: "home" };
+  }
+
+  // if (user && !to.meta.requireAuth) return { name: "home" };
+  // if (!user && !to.meta.requireAuth) return { name: "home" };
 
 
   // if (!to.meta.requireAuth && user) {

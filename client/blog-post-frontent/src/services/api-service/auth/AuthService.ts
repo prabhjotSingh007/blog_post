@@ -20,3 +20,12 @@ export const Register = async (data: any) => {
         throw new Error(err?.message)
     }
 }
+
+export const Logout = async () => {
+    try {
+        let response = await axiosInterceptor.post('/api/vi/auth/logout',);
+        return response
+    } catch (err: any) {
+        throw new Error(err?.message)
+    }
+}

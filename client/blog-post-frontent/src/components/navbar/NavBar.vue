@@ -1,17 +1,42 @@
 <script setup>
-import { onMounted, watch, ref } from 'vue';
+import { onMounted, watch, ref, handleError } from 'vue';
 import { getUserFromCookies } from '../../services/cookies-service/CookiesService';
+import { useRoute, useRouter } from 'vue-router';
+import UserDetailBtn from '../user-detail-btn/userDetailBtn.vue';
+import { UserRole } from '../../type.ts';
+import { Logout } from '../../services/api-service/auth/AuthService.ts';
+import { hideLoader, showLoader } from '../../services/loader-service/loder-service.ts';
+import { showSuccess } from '../../services/toster-service/toster.ts';
+import { useUser } from '../../services/cookies-service/CookiesService';
 
+const { currentUser } = useUser()
+const route = useRoute()
+const router = useRouter()
 
-const user = ref(null);
+console.log(route.fullPath)
 
-onMounted(() => {
-    user.value = getUserFromCookies();
-})
+// onMounted(() => {
+//     user.value = getUserFromCookies();
+// })
 
-watch(() => user.value, (newValue, oldValue) => {
+watch(() => currentUser, (newValue, oldValue) => {
     console.log(newValue, "newValue")
 })
+
+
+const handleLogOut = async () => {
+    try {
+        showLoader()
+        const response = await Logout();
+        console.log(response);
+        hideLoader()
+        showSuccess(response?.message ?? "Logout Successfully")
+        router.push("/")
+    } catch (err) {
+        console.log(err);
+        handleError(err?.message ?? "Logout Error")
+    }
+}
 
 </script>
 
@@ -27,24 +52,30 @@ watch(() => user.value, (newValue, oldValue) => {
 
             <!-- Navigation -->
             <div class="d-none d-md-flex gap-4 align-items-center">
+                <router-link to="/" class="text-secondary text-decoration-none"
+                    exact-active-class="text-primary nav_active fw-bold text-decoration-none border-bottom border-2 border-primary pb-1">
+                    Home
+                </router-link>
 
-                <a href="#"
-                    class="text-primary fw-bold text-decoration-none border-bottom border-2 border-primary pb-1">
-                    Latest
-                </a>
+                <router-link to="/latest-blog" class="text-secondary text-decoration-none"
+                    exact-active-class=" nav_active text-primary fw-bold text-decoration-none border-bottom border-2 border-primary pb-1">
+                    Latest blogs
+                </router-link>
+                <router-link to="/all-blog" class="text-secondary text-decoration-none"
+                    exact-active-class="nav_active text-primary fw-bold text-decoration-none border-bottom border-2 border-primary pb-1">
+                    All blogs
+                </router-link>
 
-                <a href="#" class="text-secondary text-decoration-none">
-                    Topics
-                </a>
+                <router-link v-if="currentUser" to="/my-blog" class="text-secondary text-decoration-none"
+                    exact-active-class="nav_active text-primary fw-bold text-decoration-none border-bottom border-2 border-primary pb-1">
+                    My Blogs
+                </router-link>
 
-                <a href="#" class="text-secondary text-decoration-none">
-                    Zen Mode
-                </a>
-
-                <a href="#" class="text-secondary text-decoration-none">
-                    About
-                </a>
-
+                <router-link v-if="currentUser && (currentUser?.role == UserRole.Admin)" to="/add-category"
+                    class="text-secondary text-decoration-none"
+                    exact-active-class="nav_active text-primary fw-bold text-decoration-none border-bottom border-2 border-primary pb-1">
+                    Add Category
+                </router-link>
             </div>
 
             <!-- Actions -->
@@ -56,23 +87,19 @@ watch(() => user.value, (newValue, oldValue) => {
                 </button>
 
                 <!-- Subscribe -->
-                <button v-if="!user" type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-sm">
+                <router-link to="/login" v-if="!currentUser" type="button"
+                    class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-sm">
                     Login
+                </router-link>
+
+
+
+                <UserDetailBtn v-if="currentUser" />
+
+                <button @click="handleLogOut" v-if="currentUser"
+                    class="btn btn-outline-primary rounded-pill px-4 py-2 align-self-start mt-2">
+                    Log out
                 </button>
-
-
-                <li v-if="user" class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <img src="https://placeholder.com" class="rounded-circle" height="32" alt="Avatar">
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                        <a class="dropdown-item" href="#">My Profile</a>
-                        <a class="dropdown-item" href="#">Settings</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Logout</a>
-                    </div>
-                </li>
 
             </div>
 
@@ -83,4 +110,8 @@ watch(() => user.value, (newValue, oldValue) => {
 </template>
 
 
-<style scoped></style>
+<style scoped>
+.nav_active {
+    color: rgba(var(--bs-primary-rgb), var(--bs-text-opacity)) !important;
+}
+</style>

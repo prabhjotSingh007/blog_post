@@ -22,10 +22,11 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 
 const authRoute = require('./routes/auth-route/AuthRoute')
-
+const blogRoute = require('./routes/blog-route/BlogRoute')
 // 2. Mount the auth router with a path prefix
 app.use('/api/vi/auth', authRoute);
-
+// blog route
+app.use('/api/vi/blog', blogRoute);
 
 
 app.get('/', (req, res) => res.send('hi im here'))
