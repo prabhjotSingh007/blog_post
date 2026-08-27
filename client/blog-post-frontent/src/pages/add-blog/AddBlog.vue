@@ -1,4 +1,47 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useVuelidate } from '@vuelidate/core'
+import { required, } from '@vuelidate/validators'
+import { computed, reactive, ref, watch } from 'vue';
+
+const initalValue = reactive({
+    title: '',
+    blog: '',
+    status: '',
+    categoryId: "",
+
+})
+
+const rules = computed(() => ({
+    title: { required, },
+    blog: { required },
+    status: { required },
+    categoryId: { required },
+}))
+
+
+const validate = useVuelidate(rules, initalValue);
+
+watch(() => initalValue.status, (nevalue: any) => {
+    console.log(nevalue)
+})
+
+
+// 4. Handle form submission
+const submitForm = async () => {
+
+    console.log(initalValue)
+    // Trigger validation on all fields
+    const isFormValid = await validate.value.$validate()
+
+    if (isFormValid) {
+        console.log('Form submitted successfully!')
+        // Proceed with API calls
+    } else {
+        console.log('Form validation failed. Please check the errors.')
+    }
+}
+
+</script>
 
 <template>
     <main class="container-fluid px-3 px-md-5 py-5">
@@ -23,18 +66,7 @@
 
                     <div class="d-flex flex-wrap gap-2 align-items-center">
 
-                        <button class="btn btn-outline-primary">
-                            Save Draft
-                        </button>
-
-                        <button class="btn btn-outline-secondary d-flex align-items-center gap-2">
-                            <span class="material-symbols-outlined fs-6">
-                                visibility
-                            </span>
-                            Preview
-                        </button>
-
-                        <button class="btn btn-primary d-flex align-items-center gap-2">
+                        <button class="btn btn-primary d-flex align-items-center gap-2" @click="submitForm">
                             <span class="material-symbols-outlined fs-6">
                                 publish
                             </span>
@@ -53,9 +85,12 @@
 
                     <!-- Title Input -->
                     <div class="bg-white rounded-3">
-                        <input type="text"
+                        <input type="text" v-model="initalValue.title"
                             class="form-control form-control-lg border-0 border-bottom rounded-0 px-3 py-4 shadow-none"
-                            placeholder="Enter an insightful title here...">
+                            :class="{ error: validate.title.$error }" placeholder="Enter an insightful title here...">
+                        <div class="input-errors" v-if="validate.title.$error">
+                            <div class="error-msg">Title Filed is required</div>
+                        </div>
                     </div>
 
 
@@ -63,118 +98,31 @@
                     <div class="d-flex align-items-center gap-2 px-3 text-secondary small">
 
                         <span class="material-symbols-outlined fs-6">
-                            link
+                            Slug will be :
                         </span>
 
-                        <span>theinsightfulreader.com/post/</span>
 
-                        <span class="text-muted fst-italic">
-                            enter-an-insightful-title-here
+                        <span class="text-muted fst-italic" v-if="!validate.title.$error">
+                            {{ initalValue.title.split(/[,;$#@!%& |]/).join("-") }}
                         </span>
 
                     </div>
 
 
-                    <!-- Rich Text Editor -->
-                    <div class="card border rounded-4 overflow-hidden editor-card">
-
-                        <!-- Editor Toolbar -->
-                        <div class="bg-light border-bottom p-3">
-
-                            <div class="d-flex flex-wrap align-items-center gap-1">
-
-                                <button class="btn btn-sm btn-light">
-                                    <span class="material-symbols-outlined fs-6">
-                                        format_bold
-                                    </span>
-                                </button>
-
-                                <button class="btn btn-sm btn-light">
-                                    <span class="material-symbols-outlined fs-6">
-                                        format_italic
-                                    </span>
-                                </button>
-
-                                <button class="btn btn-sm btn-light">
-                                    <span class="material-symbols-outlined fs-6">
-                                        format_underlined
-                                    </span>
-                                </button>
-
-                                <span class="toolbar-divider"></span>
-
-                                <button class="btn btn-sm btn-light">
-                                    <span class="material-symbols-outlined fs-6">
-                                        format_h1
-                                    </span>
-                                </button>
-
-                                <button class="btn btn-sm btn-light">
-                                    <span class="material-symbols-outlined fs-6">
-                                        format_h2
-                                    </span>
-                                </button>
-
-                                <button class="btn btn-sm btn-light">
-                                    <span class="material-symbols-outlined fs-6">
-                                        format_quote
-                                    </span>
-                                </button>
-
-                                <span class="toolbar-divider"></span>
-
-                                <button class="btn btn-sm btn-light">
-                                    <span class="material-symbols-outlined fs-6">
-                                        format_list_bulleted
-                                    </span>
-                                </button>
-
-                                <button class="btn btn-sm btn-light">
-                                    <span class="material-symbols-outlined fs-6">
-                                        format_list_numbered
-                                    </span>
-                                </button>
-
-                                <span class="toolbar-divider"></span>
-
-                                <button class="btn btn-sm btn-light">
-                                    <span class="material-symbols-outlined fs-6">
-                                        link
-                                    </span>
-                                </button>
-
-                                <button class="btn btn-sm btn-light">
-                                    <span class="material-symbols-outlined fs-6">
-                                        image
-                                    </span>
-                                </button>
-
-                            </div>
-                        </div>
-
-
-                        <!-- Editor Canvas -->
-                        <textarea class="form-control border-0 rounded-0 shadow-none p-4 editor-canvas"
-                            placeholder="Start crafting your essay here..."></textarea>
-
-                    </div>
 
 
                     <!-- Excerpt -->
-                    <div class="card border rounded-4 p-4">
 
-                        <h3 class="h5 fw-semibold mb-2">
-                            Excerpt
-                        </h3>
+                    <h3 class="h5 fw-semibold mb-2">
+                        Blog Text
+                    </h3>
 
-                        <p class="small text-secondary mb-3">
-                            A brief summary for previews and SEO.
-                        </p>
+                    <textarea class="form-control" :class="{ error: validate.blog.$error }" rows="3"
+                        placeholder="Write a captivating summary..." v-model="initalValue.blog"></textarea>
 
-                        <textarea class="form-control" rows="3" placeholder="Write a captivating summary..."></textarea>
-
+                    <div class="input-errors" v-if="validate.blog.$error">
+                        <div class="error-msg">Blog Filed is required</div>
                     </div>
-
                 </div>
 
             </div>
@@ -199,21 +147,6 @@
                         </h3>
 
 
-                        <!-- Status -->
-                        <div class="mb-4">
-
-                            <label class="form-label fw-semibold">
-                                Status
-                            </label>
-
-                            <select class="form-select">
-                                <option value="draft">Draft</option>
-                                <option value="pending">Pending Review</option>
-                                <option value="published">Published</option>
-                            </select>
-
-                        </div>
-
 
                         <!-- Visibility -->
                         <div class="mb-4">
@@ -226,7 +159,7 @@
 
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="visibility" id="public"
-                                        value="public" checked>
+                                        value="public" v-model="initalValue.status">
 
                                     <label class="form-check-label" for="public">
                                         Public
@@ -235,11 +168,15 @@
 
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="visibility" id="private"
-                                        value="private">
+                                        value="private" v-model="initalValue.status">
 
                                     <label class="form-check-label" for="private">
                                         Private
                                     </label>
+                                </div>
+
+                                <div class="input-errors" v-if="validate.status.$error">
+                                    <div class="error-msg">Status is required</div>
                                 </div>
 
                             </div>
@@ -257,7 +194,8 @@
                                 Category
                             </label>
 
-                            <select class="form-select">
+                            <select class="form-select " :class="{ error: validate.categoryId.$error }"
+                                v-model="initalValue.categoryId">
 
                                 <option selected disabled value="">
                                     Select a category...
@@ -270,65 +208,13 @@
 
                             </select>
 
-                            <button class="btn btn-link btn-sm text-primary text-decoration-none
-                                   px-0 mt-2 d-inline-flex align-items-center gap-1">
-                                <span class="material-symbols-outlined fs-6">
-                                    add
-                                </span>
-                                Add New Category
-                            </button>
-
-                        </div>
-
-
-                        <!-- Tags -->
-                        <div class="mb-4">
-
-                            <label class="form-label fw-semibold">
-                                Tags
-                            </label>
-
-                            <div class="input-group">
-
-                                <input type="text" class="form-control" placeholder="Add a tag...">
-
-                                <button class="btn btn-light">
-                                    <span class="material-symbols-outlined fs-6">
-                                        add
-                                    </span>
-                                </button>
-
-                            </div>
-
-
-                            <div class="d-flex flex-wrap gap-2 mt-3">
-
-                                <span class="badge rounded-pill bg-light text-secondary
-                                         border d-flex align-items-center gap-1 px-2 py-2">
-
-                                    UX Design
-
-                                    <span class="material-symbols-outlined fs-6">
-                                        close
-                                    </span>
-
-                                </span>
-
-
-                                <span class="badge rounded-pill bg-light text-secondary
-                                         border d-flex align-items-center gap-1 px-2 py-2">
-
-                                    Research
-
-                                    <span class="material-symbols-outlined fs-6">
-                                        close
-                                    </span>
-
-                                </span>
-
+                            <div class="input-errors" v-if="validate.categoryId.$error">
+                                <div class="error-msg">Category is required</div>
                             </div>
 
                         </div>
+
+
 
 
                         <hr class="my-4">

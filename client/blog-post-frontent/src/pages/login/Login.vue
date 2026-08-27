@@ -7,10 +7,10 @@ import { showWarning, showSuccess, showError } from '../../services/toster-servi
 import { hideLoader, showLoader } from '../../services/loader-service/loder-service';
 import { saveUserInCookes } from '../../services/cookies-service/CookiesService';
 import { useRouter } from 'vue-router'
-const formData = ref({
-    email: '',
-    password: ''
-})
+// const formData = ref({
+//     email: '',
+//     password: ''
+// })
 
 const showPassword = ref(false);
 const form$ = ref(null)
