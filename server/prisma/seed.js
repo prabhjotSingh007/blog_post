@@ -4,16 +4,20 @@ const prisma = new PrismaClient();
 
 const addAdmin = async () => {
 
-    const hashPassword = await createPassword(process.env.ADMINPASSWORD);
-    const user = await prisma.user.create({
+    try {
+        const hashPassword = await createPassword(process.env.ADMINPASSWORD);
+        const user = await prisma.user.create({
 
-        data: {
-            name: 'Admin',
-            email: "admin@yopmail.com",
-            password: hashPassword,
-            role:'ADMIN'
-        }
-    })
+            data: {
+                name: 'Admin',
+                email: "admin@yopmail.com",
+                password: hashPassword,
+                role: 'ADMIN'
+            }
+        })
+    } catch (err) {
+        console.log(err)
+    }
 
 }
 

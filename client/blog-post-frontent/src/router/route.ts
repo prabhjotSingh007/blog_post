@@ -73,10 +73,12 @@ router.beforeEach((to, from) => {
   if (!user && to.meta.requireAuth) return { name: "login" };
 
   // Role check
+  console.log(user.value)
+
   if (
-    user &&
+    user && to.meta.requireAuth &&
     to.meta.roleAllowed &&
-    !(to.meta.roleAllowed as string[]).includes(user.role)
+    !(to.meta.roleAllowed as string[]).includes(user.value.role)
   ) {
     return { name: "home" };
   }

@@ -13,7 +13,10 @@ const axiosInterceptor = axios.create({
 // 1. Request Interceptor: Attach Auth Tokens
 axiosInterceptor.interceptors.request.use(
     (config) => {
-        const token = getUserFromCookies()?.token
+
+        const user: any = getUserFromCookies();
+
+        const token = user.value?.token
         if (token) {
             config.headers.Authorization = `Bearer ${token}`; // Inject JWT token automatically
         }
@@ -48,7 +51,7 @@ axiosInterceptor.interceptors.response.use(
                     break;
             }
         }
-        return Promise.reject(error?.response?.data);
+        return Promise.reject(error);
     }
 );
 

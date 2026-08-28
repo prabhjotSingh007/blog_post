@@ -37,7 +37,7 @@ const createCategory = async (req, res) => {
 
     } catch (err) {
 
-        return req.status(500).send({
+        return res.status(500).send({
             success: false,
             message: err,
             error: err
@@ -77,7 +77,7 @@ const updateCategory = async (req, res) => {
 
     } catch (err) {
 
-        return req.status(500).send({
+        return res.status(500).send({
             success: false,
             message: err,
             error: err
@@ -100,10 +100,15 @@ const deleteCategory = async (req, res) => {
         })
     }
     try {
-        const updatedCategory = await prisma.category.delete({
+        const updatedCategory = await prisma.category.update({
             where: {
                 id: categoryId
+            },
+            data: {
+                status: "Inactive",
+                deleted_at: new Date()
             }
+
         })
 
         return res.status(200).send({
@@ -114,7 +119,7 @@ const deleteCategory = async (req, res) => {
 
     } catch (err) {
 
-        return req.status(500).send({
+        return res.status(500).send({
             success: false,
             message: err,
             error: err
@@ -130,8 +135,9 @@ const categoryList = async (req, res) => {
     try {
         const categoryList = await prisma.category.findMany({
             orderBy: {
-                created_at: "desc"
+                created_at: "asc"
             }
+            
         })
         return res.status(200).send({
             success: true,
@@ -142,7 +148,7 @@ const categoryList = async (req, res) => {
 
     } catch (err) {
 
-        return req.status(500).send({
+        return res.status(500).send({
             success: false,
             message: err,
             error: err
