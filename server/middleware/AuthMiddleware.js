@@ -20,7 +20,7 @@ const authMiddelWare = (req, res, next) => {
         })
     }
 
-    console.log(token)
+    // console.log(token)
 
     try {
         const user = returnUserFromToken(token);

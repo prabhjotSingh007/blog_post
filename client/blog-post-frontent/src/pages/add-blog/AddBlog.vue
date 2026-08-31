@@ -2,20 +2,31 @@
 import { useVuelidate } from '@vuelidate/core'
 import { required, } from '@vuelidate/validators'
 import { computed, reactive, ref, watch } from 'vue';
+import { showWarning } from '../../services/toster-service/toster';
+import { allowedSize, createUrl, imageMimeType } from '../../utils/validator';
+
+const blogImage = ref<string>("")
 
 const initalValue = reactive({
     title: '',
     blog: '',
     status: '',
     categoryId: "",
+    blog_image: "",
 
 })
+
 
 const rules = computed(() => ({
     title: { required, },
     blog: { required },
     status: { required },
     categoryId: { required },
+    blog_image: {
+        required,
+        maxSize: allowedSize(5 * 1024 * 1024), // 5MB limit
+        fileType: imageMimeType(['image/jpeg', 'image/png', 'image/webp'])
+    }
 }))
 
 
@@ -32,14 +43,29 @@ const submitForm = async () => {
     console.log(initalValue)
     // Trigger validation on all fields
     const isFormValid = await validate.value.$validate()
+    if (!isFormValid) {
+        showWarning("Validation Error")
+        return
+    }
 
-    if (isFormValid) {
-        console.log('Form submitted successfully!')
-        // Proceed with API calls
-    } else {
-        console.log('Form validation failed. Please check the errors.')
+}
+
+
+// 3. Handle file change event
+const handleFileChange = (event: any) => {
+    const file = event.target.files[0]
+
+    if (file) {
+        initalValue.blog_image = file
+    }
+    // Explicitly tell Vuelidate that the field has been modified
+    validate.value.blog_image.$touch()
+    const hasImageError = validate.value.blog_image.$error;
+    if (!hasImageError) {
+        blogImage.value = createUrl(file)
     }
 }
+
 
 </script>
 
@@ -227,10 +253,10 @@ const submitForm = async () => {
                                 Featured Image
                             </label>
 
-                            <div class="upload-box rounded-4 p-4 text-center">
+                            <label for="image_upload" class="upload-box rounded-4 p-4 text-center d-block">
 
                                 <span class="material-symbols-outlined upload-icon">
-                                    add_photo_alternate
+                                    <i class="fa-solid fa-upload"></i>
                                 </span>
 
                                 <p class="small text-secondary mb-1">
@@ -238,12 +264,25 @@ const submitForm = async () => {
                                 </p>
 
                                 <p class="small text-muted mb-1">
-                                    SVG, PNG, JPG or GIF (max. 10MB)
+                                    SVG, PNG, JPG or GIF (max. 5MB)
                                 </p>
 
-                                <p class="small text-primary fw-semibold mb-0">
-                                    16:9 aspect ratio recommended
+                            </label>
+
+                            <input id="image_upload" type="file" accept="image/jpeg, image/png, image/webp" hidden
+                                @change="handleFileChange" :class="{ 'input-error': validate.blog_image.$error }" />
+
+
+                            <div v-if="validate.blog_image.$error" class="error-messages">
+                                <p v-for="error in validate.blog_image.$errors" :key="error.$uid">
+                                    {{ error.$message }}
                                 </p>
+                            </div>
+
+
+                            <div class="d-flex justify-content-center align-items-center" v-if="blogImage">
+
+                                <img class="rounded w-100" alt="blog_image" :src="blogImage">
 
                             </div>
 

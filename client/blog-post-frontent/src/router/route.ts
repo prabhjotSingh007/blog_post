@@ -70,15 +70,15 @@ const router = createRouter({
 router.beforeEach((to, from) => {
   // console.log(to, from)
   const user = getUserFromCookies();
+  console.log(user)
   if (!user && to.meta.requireAuth) return { name: "login" };
-
   // Role check
   console.log(user.value)
 
   if (
-    user && to.meta.requireAuth &&
+    user && user.value?.role && to.meta.requireAuth &&
     to.meta.roleAllowed &&
-    !(to.meta.roleAllowed as string[]).includes(user.value.role)
+    !(to.meta.roleAllowed as string[]).includes(user.value?.role)
   ) {
     return { name: "home" };
   }

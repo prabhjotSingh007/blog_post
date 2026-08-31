@@ -18,3 +18,22 @@ export const GetAllBlogList = async () => {
         throw new Error(err.message)
     }
 }
+
+
+export const UpadateCategory = async (data: any) => {
+    try {
+        let resposne = await axiosInterceptor.put('/category/update', data);
+        return resposne
+    } catch (err: any) {
+        throw new Error(err.message)
+    }
+}
+
+export const DeleteCategory = async (categoryId: any) => {
+    try {
+        let resposne = await axiosInterceptor.post('/category/delete', { categoryId });
+        return resposne
+    } catch (err: any) {
+        throw new Error(err.message)
+    }
+}

@@ -45,6 +45,7 @@ model Category{
   name String @unique
   created_at DateTime @default(now())
   deleted_at DateTime?
+ updated_at DateTime @updatedAt
   status STATUS @default(Active)
   posts Post[]
 

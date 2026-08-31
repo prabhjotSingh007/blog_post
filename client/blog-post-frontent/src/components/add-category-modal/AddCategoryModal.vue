@@ -3,11 +3,12 @@ import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import { computed, reactive, ref, watch } from 'vue';
 import { showError, showSuccess } from '../../services/toster-service/toster';
-import { CreateCategory } from '../../services/api-service/category-service/CategoryService';
+import { CreateCategory, UpadateCategory } from '../../services/api-service/category-service/CategoryService';
 import { hideLoader, showLoader } from '../../services/loader-service/loder-service';
 
 interface PropsType {
-    openModal: boolean
+    openModal: boolean,
+    toUpdateCategory: any
 }
 
 const emits = defineEmits<{
@@ -22,11 +23,14 @@ const modalBtnRef = ref<HTMLButtonElement | any>(null)
 
 console.log(modalBtnRef)
 
+const fromInitialValue = {
+    title: ""
+}
+
 const initalValue = reactive({
     title: ""
 }
 )
-
 const rule = computed(() => ({
     title: { required, },
 
@@ -36,6 +40,7 @@ const validate = useVuelidate(rule, initalValue)
 
 const handleSumbit = async () => {
     console.log(initalValue)
+    validate.value.$touch();
     // Trigger validation on all fields
     const isFormValid = await validate.value.$validate();
     if (!isFormValid) {
@@ -43,13 +48,23 @@ const handleSumbit = async () => {
         return
     }
 
+
     try {
         showLoader()
-        let response: any = await CreateCategory(initalValue.title);
+        let response: any;
+
+        if (props.toUpdateCategory) {
+            response = await UpadateCategory({ categoryId: props?.toUpdateCategory.id, categoryName: initalValue.title });
+        } else {
+            response = await CreateCategory(initalValue.title);
+        }
         console.log(response)
         emits('shareData', response?.data)
         emits('updateModalState', false)
-
+        modalBtnRef.value?.click();
+        Object.assign(initalValue, fromInitialValue)
+        validate.value.$reset()
+        console.log(initalValue)
         hideLoader();
         showSuccess(response?.message ?? "Category Created Successfully")
     } catch (err: any) {
@@ -69,7 +84,9 @@ const handleSumbit = async () => {
 }
 
 const closeModal = () => {
-    emits('updateModalState', false)
+    emits('updateModalState', false);
+    Object.assign(initalValue, fromInitialValue)
+    validate.value.$reset()
 }
 
 
@@ -81,6 +98,12 @@ watch(() => props.openModal, (newValue: boolean, oldValue: boolean) => {
 
 })
 
+watch(() => props.toUpdateCategory, (newValue: any, oldValue: any) => {
+    console.log(newValue);
+    if (newValue) {
+        initalValue.title = newValue?.name
+    }
+})
 </script>
 
 <template>
@@ -96,12 +119,12 @@ watch(() => props.openModal, (newValue: boolean, oldValue: boolean) => {
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Add Category</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel"> {{ toUpdateCategory ? "Update" : "Add" }}
+                        Category</h1>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="categoryName" class="form-label">Email address</label>
+                        <label for="categoryName" class="form-label">Category title</label>
                         <input type="text" class="form-control" id="categoryName" placeholder=""
                             v-model="initalValue.title" :class="{ error: validate.title.$error }">
 
@@ -114,7 +137,8 @@ watch(() => props.openModal, (newValue: boolean, oldValue: boolean) => {
                 <div class="modal-footer">
                     <button type="button" @click="closeModal" class="btn btn-secondary"
                         data-bs-dismiss="modal">Close</button>
-                    <button type="button" @click="handleSumbit" class="btn btn-primary">Add Category</button>
+                    <button type="button" @click="handleSumbit" class="btn btn-primary">{{ toUpdateCategory ? "Update" :
+                        "Add" }} Category</button>
                 </div>
             </div>
         </div>

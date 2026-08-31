@@ -135,9 +135,12 @@ const categoryList = async (req, res) => {
     try {
         const categoryList = await prisma.category.findMany({
             orderBy: {
-                created_at: "asc"
+                created_at: "desc"
+            },
+            where: {
+                status: "Active"
             }
-            
+
         })
         return res.status(200).send({
             success: true,
