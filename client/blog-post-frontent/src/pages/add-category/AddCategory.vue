@@ -2,7 +2,7 @@
 import { onBeforeMount, onMounted, reactive, ref } from 'vue';
 import Heading from '../../components/static-component/heading/Heading.vue';
 import AddCategoryModal from '../../components/add-category-modal/AddCategoryModal.vue';
-import { DeleteCategory, GetAllBlogList } from '../../services/api-service/category-service/CategoryService.ts';
+import { DeleteCategory, GetAllCategoryList } from '../../services/api-service/category-service/CategoryService.ts';
 import { hideLoader, showLoader } from '../../services/loader-service/loder-service.ts';
 import { showError, showSuccess } from '../../services/toster-service/toster.ts';
 import ConfirmationModal from '../../components/confirmation-modal/ConfirmationModal.vue';
@@ -23,7 +23,7 @@ const getAllCategoryList = async () => {
 
     try {
         showLoader()
-        let response = await GetAllBlogList();
+        let response = await GetAllCategoryList();
         console.log(response);
         categoryList.value = response?.data;
         console.log(categoryList);

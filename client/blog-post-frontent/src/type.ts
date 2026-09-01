@@ -15,3 +15,9 @@ export enum UserRole {
     USER = "USER",
     Viewer = "VIEWER"
 }
+
+
+export interface Pagination {
+    limit: number;
+    currentPage: number;
+}

@@ -2,8 +2,10 @@
 const { PrismaClient } = require("@prisma/client");
 const { returnUserFromToken } = require("../utlits/jwtToken");
 const { BlogCreateSchema } = require("../validators/blogValidator");
+const { getFileSave } = require("../utlits/multerFileUpload");
 const prisma = new PrismaClient();
-
+const fs = require('fs');
+const path = require('path');
 const getHomePageBlogList = async (req, res) => {
 
     const blogList = await prisma.post.findMany({
@@ -112,18 +114,22 @@ const addBlog = async (req, res) => {
         })
     }
 
-    const { categoryId, name, description } = req.body;
+    const { categoryId, name, description, status } = req.body;
+    const file = req.file;
 
-    if (!categoryId || !name || !description) {
+
+    if (!categoryId || !name || !description || !status) {
         return res.status(412).send({
             success: false,
             message: `${!categoryId ? 'catrgory Id' : !name ? "name" : !description ? 'description'
-                : ''
+                : !status ? 'status' : ''
                 } field is missing`
         })
     }
 
     const { value, error } = BlogCreateSchema.validate(req.body)
+
+
 
     if (error) {
         return res.status(400).send({
@@ -131,16 +137,57 @@ const addBlog = async (req, res) => {
             error: error
         })
     }
+
+
     try {
+
+        const fileDirectory = '../public/uploads/post'
+
+        let filename = null;
+        if (file) {
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            const extension = path.extname(file.originalname);
+            filename = file.fieldname + '-' + uniqueSuffix + extension;
+        }
+
         const blogAdded = await prisma.post.create({
-            data: { ...value, categoryId: user?.id }
+            data: { ...value, categoryId: Number(value.categoryId), createdByID: user?.id }
         })
+
+        const mediaFile = await prisma.mediapost.create({
+            data: {
+                path: '/post',
+                fullPath: fileDirectory,
+                mediaName: filename,
+                mimeType: file?.mimetype,
+                userId: user?.id,
+                postId: blogAdded?.id
+            }
+        })
+
+        if (file) {
+            const uploadDir = path.join(__dirname, fileDirectory);
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, {
+                    recursive: true
+                });
+            }
+            const filePath = path.join(uploadDir, filename);
+            fs.writeFileSync(
+                filePath,
+                file.buffer
+            );
+        }
+
         return res.status(200).send({
-            success: success,
+            success: true,
             message: "Blog created Successfully",
-            data: blogAdded,
+            data: { ...blogAdded, blo: mediaFile },
         })
     } catch (err) {
+
+        console.log(err)
+
         return res.status(500).send({
             success: false,
             error: err,

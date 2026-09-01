@@ -1,25 +1,37 @@
 <script setup lang="ts">
 import { useVuelidate } from '@vuelidate/core'
 import { required, } from '@vuelidate/validators'
-import { computed, reactive, ref, watch } from 'vue';
-import { showWarning } from '../../services/toster-service/toster';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { showError, showSuccess, showWarning } from '../../services/toster-service/toster';
 import { allowedSize, createUrl, imageMimeType } from '../../utils/validator';
+import { hideLoader, showLoader } from '../../services/loader-service/loder-service';
+import { GetAllCategoryList } from '../../services/api-service/category-service/CategoryService';
+import { CreateBlog } from '../../services/api-service/blog-service/BlogService';
 
 const blogImage = ref<string>("")
+const categoryList = ref<any[]>([])
 
-const initalValue = reactive({
-    title: '',
-    blog: '',
+const initalValue: any = reactive({
+    name: '',
+    description: '',
     status: '',
     categoryId: "",
     blog_image: "",
 
 })
 
+const FormInitalValue: any = {
+    name: '',
+    description: '',
+    status: '',
+    categoryId: "",
+    blog_image: "",
+
+}
 
 const rules = computed(() => ({
-    title: { required, },
-    blog: { required },
+    name: { required, },
+    description: { required },
     status: { required },
     categoryId: { required },
     blog_image: {
@@ -48,24 +60,65 @@ const submitForm = async () => {
         return
     }
 
+    const formData: any = new FormData();
+    Object.keys((initalValue as any)).forEach((e: any) => {
+        formData.append(e, initalValue[e])
+    })
+
+    console.log(formData)
+
+    try {
+        showLoader()
+        let response: any = await CreateBlog(formData);
+        console.log(response)
+        validate.value.$reset();
+        Object.assign(initalValue, FormInitalValue);
+        showSuccess(response?.message ?? "Successfully created Blog")
+        blogImage.value = ''
+    } catch (err: any) {
+        console.log(err);
+        showError(err?.message ?? "Error in posting blog")
+    } finally {
+        hideLoader();
+
+    }
+
 }
 
 
 // 3. Handle file change event
 const handleFileChange = (event: any) => {
     const file = event.target.files[0]
-
     if (file) {
         initalValue.blog_image = file
     }
     // Explicitly tell Vuelidate that the field has been modified
     validate.value.blog_image.$touch()
     const hasImageError = validate.value.blog_image.$error;
+    console.log(validate.value.blog_image)
     if (!hasImageError) {
         blogImage.value = createUrl(file)
     }
 }
 
+
+onMounted(() => {
+    getCategoryList()
+})
+
+const getCategoryList = async () => {
+    try {
+        showLoader()
+        let response = await GetAllCategoryList();
+        console.log(response);
+        categoryList.value = response?.data
+    } catch (err: any) {
+        console.log(err);
+        showError(err?.message ?? "Error in fetching Category List")
+    } finally {
+        hideLoader()
+    }
+}
 
 </script>
 
@@ -111,10 +164,10 @@ const handleFileChange = (event: any) => {
 
                     <!-- Title Input -->
                     <div class="bg-white rounded-3">
-                        <input type="text" v-model="initalValue.title"
+                        <input type="text" v-model="initalValue.name"
                             class="form-control form-control-lg border-0 border-bottom rounded-0 px-3 py-4 shadow-none"
-                            :class="{ error: validate.title.$error }" placeholder="Enter an insightful title here...">
-                        <div class="input-errors" v-if="validate.title.$error">
+                            :class="{ error: validate.name.$error }" placeholder="Enter an insightful title here...">
+                        <div class="input-errors" v-if="validate.name.$error">
                             <div class="error-msg">Title Filed is required</div>
                         </div>
                     </div>
@@ -128,8 +181,8 @@ const handleFileChange = (event: any) => {
                         </span>
 
 
-                        <span class="text-muted fst-italic" v-if="!validate.title.$error">
-                            {{ initalValue.title.split(/[,;$#@!%& |]/).join("-") }}
+                        <span class="text-muted fst-italic" v-if="!validate.name.$error">
+                            {{ initalValue.name.split(/[,;$#@!%& |]/).join("-") }}
                         </span>
 
                     </div>
@@ -143,10 +196,10 @@ const handleFileChange = (event: any) => {
                         Blog Text
                     </h3>
 
-                    <textarea class="form-control" :class="{ error: validate.blog.$error }" rows="3"
-                        placeholder="Write a captivating summary..." v-model="initalValue.blog"></textarea>
+                    <textarea class="form-control" :class="{ error: validate.description.$error }" rows="3"
+                        placeholder="Write a captivating summary..." v-model="initalValue.description"></textarea>
 
-                    <div class="input-errors" v-if="validate.blog.$error">
+                    <div class="input-errors" v-if="validate.description.$error">
                         <div class="error-msg">Blog Filed is required</div>
                     </div>
                 </div>
@@ -184,20 +237,19 @@ const handleFileChange = (event: any) => {
                             <div class="d-flex flex-column gap-2">
 
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="visibility" id="public"
-                                        value="public" v-model="initalValue.status">
-
-                                    <label class="form-check-label" for="public">
-                                        Public
+                                    <input class="form-check-input" type="radio" name="visibility" id="Active"
+                                        value="Active" v-model="initalValue.status">
+                                    <label class="form-check-label" for="Active">
+                                        Active
                                     </label>
                                 </div>
 
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="visibility" id="private"
-                                        value="private" v-model="initalValue.status">
+                                    <input class="form-check-input" type="radio" name="visibility" id="Inactive"
+                                        value="Inactive" v-model="initalValue.status">
 
-                                    <label class="form-check-label" for="private">
-                                        Private
+                                    <label class="form-check-label" for="Inactive">
+                                        Inactive
                                     </label>
                                 </div>
 
@@ -227,10 +279,9 @@ const handleFileChange = (event: any) => {
                                     Select a category...
                                 </option>
 
-                                <option value="tech">Technology</option>
-                                <option value="design">Design</option>
-                                <option value="culture">Culture</option>
-                                <option value="science">Science</option>
+                                <option :value="category?.id" v-for="category in categoryList" :key="category?.id">{{
+                                    category?.name }}</option>
+
 
                             </select>
 

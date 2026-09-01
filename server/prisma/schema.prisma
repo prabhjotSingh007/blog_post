@@ -22,7 +22,7 @@ model User{
   post Post[]
   status STATUS @default(Active)
   role ROLE @default(USER)
-
+  media_post Mediapost[]
   @@map("users")
 }
 
@@ -65,11 +65,29 @@ model Post {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   deleted_at DateTime?
-
+  media_post Mediapost[]
   @@index([categoryId,createdByID ])
     @@map("posts")
 }
 
+
+model Mediapost {
+  id Int @id @default(autoincrement())
+  userId Int 
+  user User @relation (fields : [userId] , references : [id])
+  postId Int
+  post Post @relation(fields :[postId] , references : [id])
+  path String
+  fullPath String 
+  mediaName  String 
+  mimeType String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  @@index([userId])
+    @@map("media_post")
+} 
 
 enum STATUS {
   Active

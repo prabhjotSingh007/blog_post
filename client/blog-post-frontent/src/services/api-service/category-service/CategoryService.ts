@@ -10,7 +10,7 @@ export const CreateCategory = async (title: string) => {
     }
 }
 
-export const GetAllBlogList = async () => {
+export const GetAllCategoryList = async () => {
     try {
         let resposne = await axiosInterceptor.get('/category/all');
         return resposne

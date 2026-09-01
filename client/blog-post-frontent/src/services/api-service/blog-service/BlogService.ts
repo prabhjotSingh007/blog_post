@@ -11,8 +11,8 @@ export const HomePageBlog = async () => {
     }
 }
 
-interface BlogListPagination extends Pagination {
-    categoryId?: string | number
+export interface BlogListPagination extends Pagination {
+    categoryId: string | number,
 }
 
 export const AllBlogList = async (pagination: BlogListPagination) => {
@@ -23,3 +23,17 @@ export const AllBlogList = async (pagination: BlogListPagination) => {
         throw new Error(err?.message)
     }
 }
+
+export const CreateBlog = async (data: any) => {
+    try {
+        let resposne = await axiosInterceptor.post('/blog/create', data, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+        return resposne
+    } catch (err: any) {
+        throw new Error(err.message)
+    }
+}
+
