@@ -12,7 +12,7 @@ export const CreateCategory = async (title: string) => {
 
 export const GetAllCategoryList = async () => {
     try {
-        let resposne = await axiosInterceptor.get('/category/all');
+        let resposne = await axiosInterceptor.get('/category/');
         return resposne
     } catch (err: any) {
         throw new Error(err.message)

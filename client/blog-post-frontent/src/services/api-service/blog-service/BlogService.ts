@@ -4,7 +4,7 @@ import axiosInterceptor from "../../axios-interceptor/interceptor";
 
 export const HomePageBlog = async () => {
     try {
-        let response = await axiosInterceptor.get('/blog/home');
+        let response = await axiosInterceptor.get('/blogs/home');
         return response
     } catch (err: any) {
         throw new Error(err?.message)
@@ -12,12 +12,13 @@ export const HomePageBlog = async () => {
 }
 
 export interface BlogListPagination extends Pagination {
-    categoryId: string | number,
+    categoryId: string | number | null,
+    userId?: string | number
 }
 
 export const AllBlogList = async (pagination: BlogListPagination) => {
     try {
-        let response = await axiosInterceptor.get(`/blog/all?limit=${pagination?.limit}&currentPage=${pagination?.currentPage}&categoryId=${pagination?.categoryId}`);
+        let response = await axiosInterceptor.get(`/blogs?limit=${pagination?.limit}&currentPage=${pagination?.currentPage}&categoryId=${pagination?.categoryId}&userId=${pagination?.userId}`);
         return response
     } catch (err: any) {
         throw new Error(err?.message)
@@ -26,7 +27,7 @@ export const AllBlogList = async (pagination: BlogListPagination) => {
 
 export const CreateBlog = async (data: any) => {
     try {
-        let resposne = await axiosInterceptor.post('/blog/create', data, {
+        let resposne = await axiosInterceptor.post('/blogs/create', data, {
             headers: {
                 "Content-Type": "multipart/form-data"
             }

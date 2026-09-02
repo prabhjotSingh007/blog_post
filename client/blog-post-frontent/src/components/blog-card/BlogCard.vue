@@ -1,4 +1,13 @@
-<script setup>
+<script setup lang="ts">
+import type { BlogCard } from '../../type';
+
+
+interface BlogCardProps {
+    cardData: BlogCard
+}
+
+const props = defineProps < BlogCardProps > ()
+
 </script>
 
 <template>
@@ -43,12 +52,8 @@
                 </div>
             </div>
         </article>
-
-
         <!-- View All Button -->
-
     </div>
-
 
 
 </template>

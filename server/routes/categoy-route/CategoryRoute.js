@@ -5,7 +5,7 @@ const { createCategory, updateCategory, deleteCategory, categoryList } = require
 
 const router = express.Router();
 
-router.get("/all", categoryList)
+router.get("/", categoryList)
 
 router.post('/create', authMiddelWare, createCategory)
 

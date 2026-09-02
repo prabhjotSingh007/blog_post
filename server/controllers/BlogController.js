@@ -6,6 +6,8 @@ const { getFileSave } = require("../utlits/multerFileUpload");
 const prisma = new PrismaClient();
 const fs = require('fs');
 const path = require('path');
+
+
 const getHomePageBlogList = async (req, res) => {
 
     const blogList = await prisma.post.findMany({
@@ -27,9 +29,20 @@ const getHomePageBlogList = async (req, res) => {
 
 
 const getAllBlogList = async (req, res) => {
-    const { limit, currentPage, categoryId } = req.query
+    let { limit, currentPage, categoryId, userId } = req.query
 
+    const user = req.user;
+
+    currentPage = Number(currentPage)
+    limit = Number(limit)
     const skip = currentPage == 1 ? 0 : (currentPage - 1) * limit;
+
+    let where = {};
+
+    if (user) {
+        where = { userId: user?.id }
+    }
+
 
     try {
 
@@ -37,70 +50,41 @@ const getAllBlogList = async (req, res) => {
             orderBy: {
                 created_at: 'desc'
             },
-            skip: start,
+            skip: skip,
             take: currentPage * limit,
-            limit: limit
+            where
         })
+
+        const totalPost = await prisma.post.count()
+
+        const postWithMedia = await getMediaOfEveryPost(allBlogList)
+
+        console.log(postWithMedia, "postWithMedia")
 
         return res.status(200).send({
             success: true,
             message: "All Blog fetch Successfully",
-            data: allBlogList
+            data: postWithMedia,
+            pagination: {
+                total: totalPost,
+                limit: limit,
+                currentPage: currentPage,
+                totalPage: Math.ceil(totalPost / limit)
+            }
         })
 
     } catch (err) {
+        console.log(err)
         return res.status(500).send({
             success: false,
             error: err,
-            message: 'Error'
+            message: 'Error',
+            data: { limit, currentPage, categoryId }
         })
     }
 
 }
 
-
-
-
-const getUserCreatedBlogList = async (req, res) => {
-
-    const user = req.user
-
-    if (!user) {
-        return res.status(500).send({
-            success: false,
-            message: "User not found",
-        })
-    }
-
-    try {
-
-        const allBlogListByUser = await prisma.post.findMany({
-            where: {
-                createdByID: user?.id
-            },
-            orderBy: {
-                created_at: 'desc'
-            },
-            skip: start,
-            take: currentPage * limit,
-            limit: limit
-        })
-
-        return res.status(200).send({
-            success: true,
-            message: "Blog list fetch Successfully",
-            data: allBlogListByUser
-        })
-    } catch (err) {
-        return res.status(500).send({
-            success: false,
-            error: err,
-            message: 'Error'
-        })
-    }
-
-
-}
 
 
 const addBlog = async (req, res) => {
@@ -182,7 +166,7 @@ const addBlog = async (req, res) => {
         return res.status(200).send({
             success: true,
             message: "Blog created Successfully",
-            data: { ...blogAdded, blo: mediaFile },
+            data: { ...blogAdded, blog_image: mediaFile },
         })
     } catch (err) {
 
@@ -198,5 +182,26 @@ const addBlog = async (req, res) => {
 }
 
 
+const getMediaOfEveryPost = async (mediaArray) => {
 
-module.exports = { getHomePageBlogList, getAllBlogList, getUserCreatedBlogList, addBlog }
+    let postIds = mediaArray.map((e) => {
+        return e.id
+    })
+    const mediaFiles = await prisma.mediapost.findMany({
+        where: {
+            postId: {
+                in: postIds
+            }
+        }
+    })
+    return postWithMedia = mediaArray.map((e) => {
+        let files = mediaFiles.filter((m) => m.postId == e.id)
+        return {
+            ...e, blog_image: files
+        }
+    })
+
+}
+
+
+module.exports = { getHomePageBlogList, getAllBlogList, addBlog }
